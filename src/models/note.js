@@ -15,20 +15,4 @@ const noteSchema = new mongoose.Schema(
 );
 
 
-noteSchema.set('toJSON', {
-  transform: (doc, ret) => {
-
-    ret.created = ret.createdAt;
-    ret.updated = ret.updatedAt;
-
-
-    delete ret._id;
-    delete ret.__v;
-    delete ret.createdAt;
-    delete ret.updatedAt;
-
-    return ret;
-  },
-});
-
 export const Note = mongoose.model('Note', noteSchema);
