@@ -16,3 +16,6 @@ const noteSchema = new mongoose.Schema(
 
 
 export const Note = mongoose.model('Note', noteSchema);
+
+
+noteSchema.index({ title: 'text', content: 'text' }); // текстовый индекс

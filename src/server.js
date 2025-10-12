@@ -9,6 +9,8 @@ import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { connectMongoDB } from './db/connectMongoDB.js';
 
+import { errors as celebrateErrors } from 'celebrate';
+
 const app = express();
 
 // core middleware
@@ -22,6 +24,9 @@ app.use(notesRoutes); // /notes, /notes/:noteId etc.
 // 404 & errors
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+// celebrate
+app.use(celebrateErrors());
 
 const PORT = process.env.PORT || 3030;
 const MONGO_URL = process.env.MONGO_URL;

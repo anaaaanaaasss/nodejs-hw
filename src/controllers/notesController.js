@@ -3,9 +3,33 @@ import { Note } from '../models/note.js';
 
 export const getAllNotes = async (req, res, next) => {
   try {
-    const notes = await Note.find().lean();
-    res.status(200).json(notes);
-  } catch (e) { next(e); }
+    const { page = 1, perPage = 10, tag, search } = req.query;
+
+    const filter = {};
+    if (tag) filter.tag = tag;
+    if (search && search.trim() !== '') {
+      filter.$text = { $search: search.trim() };
+    }
+
+    const skip = (Number(page) - 1) * Number(perPage);
+
+    const [notes, totalNotes] = await Promise.all([
+      Note.find(filter).skip(skip).limit(Number(perPage)).lean(),
+      Note.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalNotes / Number(perPage)) || 1;
+
+    res.status(200).json({
+      page: Number(page),
+      perPage: Number(perPage),
+      totalNotes,
+      totalPages,
+      notes,
+    });
+  } catch (e) {
+    next(e);
+  }
 };
 
 export const getNoteById = async (req, res, next) => {
