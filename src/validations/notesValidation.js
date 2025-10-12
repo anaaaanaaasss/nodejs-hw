@@ -2,7 +2,7 @@ import { Joi, Segments, celebrate } from 'celebrate';
 import mongoose from 'mongoose';
 import { TAGS } from '../constants/tags.js';
 
-// кастомный валидатор для ObjectId
+
 const objectId = Joi.string().custom((value, helpers) => {
   if (!mongoose.isValidObjectId(value)) {
     return helpers.error('any.invalid');
@@ -29,7 +29,7 @@ export const createNoteSchema = celebrate({
   [Segments.BODY]: Joi.object({
     title: Joi.string().min(1).required(),
     content: Joi.string().allow('').default(''),
-    tag: Joi.string().valid(...TAGS).default('Todo'),
+    tag: Joi.string().valid(...TAGS).optional(),
   }),
 });
 
@@ -41,5 +41,5 @@ export const updateNoteSchema = celebrate({
     title: Joi.string().min(1),
     content: Joi.string().allow(''),
     tag: Joi.string().valid(...TAGS),
-  }).min(1), // хотя бы одно поле
+  }).min(1),
 });
