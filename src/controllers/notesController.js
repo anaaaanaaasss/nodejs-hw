@@ -3,9 +3,10 @@ import { Note } from '../models/note.js';
 
 export const getAllNotes = async (req, res, next) => {
   try {
+    const userId = req.user._id;
     const { page = 1, perPage = 10, tag, search } = req.query;
 
-    const filter = {};
+    const filter = { userId };
     if (tag) filter.tag = tag;
     if (search && search.trim() !== '') {
       filter.$text = { $search: search.trim() };
@@ -34,7 +35,8 @@ export const getAllNotes = async (req, res, next) => {
 
 export const getNoteById = async (req, res, next) => {
   try {
-    const note = await Note.findById(req.params.noteId).lean();
+    const userId = req.user._id;
+    const note = await Note.findOne({ _id: req.params.noteId, userId }).lean();
     if (!note) throw createHttpError(404, 'Note not found');
     res.status(200).json(note);
   } catch (e) { next(e); }
@@ -42,15 +44,17 @@ export const getNoteById = async (req, res, next) => {
 
 export const createNote = async (req, res, next) => {
   try {
-    const created = await Note.create(req.body);
+    const userId = req.user._id;
+    const created = await Note.create({ ...req.body, userId });
     res.status(201).json(created);
   } catch (e) { next(e); }
 };
 
 export const updateNote = async (req, res, next) => {
   try {
-    const updated = await Note.findByIdAndUpdate(
-      req.params.noteId,
+    const userId = req.user._id;
+    const updated = await Note.findOneAndUpdate(
+      { _id: req.params.noteId, userId },
       req.body,
       { new: true, runValidators: true }
     ).lean();
@@ -61,7 +65,8 @@ export const updateNote = async (req, res, next) => {
 
 export const deleteNote = async (req, res, next) => {
   try {
-    const deleted = await Note.findByIdAndDelete(req.params.noteId).lean();
+    const userId = req.user._id;
+    const deleted = await Note.findOneAndDelete({ _id: req.params.noteId, userId }).lean();
     if (!deleted) throw createHttpError(404, 'Note not found');
     res.status(200).json(deleted);
   } catch (e) { next(e); }
