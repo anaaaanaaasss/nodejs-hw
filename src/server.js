@@ -12,7 +12,6 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 import authRoutes from './routes/authRoutes.js';
 import notesRoutes from './routes/notesRoutes.js';
-import { authenticate } from './middleware/authenticate.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -27,7 +26,7 @@ app.use(logger);
 app.use(authRoutes);
 
 
-app.use(authenticate, notesRoutes);
+app.use(notesRoutes);
 
 // 404
 app.use(notFoundHandler);
@@ -38,7 +37,7 @@ app.use(celebrateErrors());
 // 500
 app.use(errorHandler);
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3030;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 await connectMongoDB();
 app.listen(PORT, () => console.log(`✅ Server listening on ${PORT}`));
