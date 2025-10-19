@@ -1,11 +1,10 @@
 import { Router } from 'express';
 import { celebrate, Segments } from 'celebrate';
 import {
-  getAllNotesQuerySchema,
-  noteIdParamsSchema,
-  createNoteBodySchema,
-  updateNoteParamsSchema,
-  updateNoteBodySchema,
+  getAllNotesSchema,
+  noteIdSchema,
+  createNoteSchema,
+  updateNoteSchema,
 } from '../validations/notesValidation.js';
 
 import {
@@ -20,34 +19,34 @@ router.use(authenticate);
 
 router.get(
   '/notes',
-  celebrate({ [Segments.QUERY]: getAllNotesQuerySchema }),
+  celebrate({ [Segments.QUERY]: getAllNotesSchema }),
   getAllNotes
 );
 
 router.get(
   '/notes/:noteId',
-  celebrate({ [Segments.PARAMS]: noteIdParamsSchema }),
+  celebrate({ [Segments.PARAMS]: noteIdSchema }),
   getNoteById
 );
 
 router.post(
   '/notes',
-  celebrate({ [Segments.BODY]: createNoteBodySchema }),
+  celebrate({ [Segments.BODY]: createNoteSchema }),
   createNote
 );
 
 router.patch(
   '/notes/:noteId',
   celebrate({
-    [Segments.PARAMS]: updateNoteParamsSchema,
-    [Segments.BODY]: updateNoteBodySchema,
+    [Segments.PARAMS]: noteIdSchema,
+    [Segments.BODY]: updateNoteSchema,
   }),
   updateNote
 );
 
 router.delete(
   '/notes/:noteId',
-  celebrate({ [Segments.PARAMS]: noteIdParamsSchema }),
+  celebrate({ [Segments.PARAMS]: noteIdSchema }),
   deleteNote
 );
 

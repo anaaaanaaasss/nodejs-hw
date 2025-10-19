@@ -9,28 +9,28 @@ const objectId = Joi.string().custom((value, helpers) => {
   return value;
 }, 'ObjectId validation');
 
-export const getAllNotesQuerySchema = Joi.object({
+// GET /notes -> validate query params
+export const getAllNotesSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   perPage: Joi.number().integer().min(5).max(20).default(10),
   tag: Joi.string().valid(...TAGS).optional(),
   search: Joi.string().allow('').optional(),
 });
 
-export const noteIdParamsSchema = Joi.object({
+// Routes with :noteId -> validate params
+export const noteIdSchema = Joi.object({
   noteId: objectId.required(),
 });
 
-export const createNoteBodySchema = Joi.object({
+// POST /notes -> validate body
+export const createNoteSchema = Joi.object({
   title: Joi.string().min(1).required(),
-  content: Joi.string().allow('').default(''),
+  content: Joi.string().allow(''),
   tag: Joi.string().valid(...TAGS).optional(),
 });
 
-export const updateNoteParamsSchema = Joi.object({
-  noteId: objectId.required(),
-});
-
-export const updateNoteBodySchema = Joi.object({
+// PATCH /notes/:noteId -> validate body (at least one field)
+export const updateNoteSchema = Joi.object({
   title: Joi.string().min(1),
   content: Joi.string().allow(''),
   tag: Joi.string().valid(...TAGS),
