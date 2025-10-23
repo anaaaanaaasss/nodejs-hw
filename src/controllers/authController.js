@@ -1,3 +1,8 @@
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import { readFile } from 'fs/promises';
+import handlebars from 'handlebars';
+import sendEmail from '../utils/sendMail.js';
 import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
 import { User } from '../models/user.js';
@@ -81,6 +86,71 @@ export const logoutUser = async (req, res, next) => {
     res.clearCookie('sessionId', { httpOnly: true, secure: true, sameSite: 'none' });
 
     res.status(204).send();
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const requestResetEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+
+    if (!user) {
+      return res.status(200).json({ message: 'Password reset email sent successfully' });
+    }
+
+    const token = jwt.sign(
+      { sub: user._id.toString(), email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    const templatePath = path.resolve('src', 'templates', 'reset-password-email.html');
+    const source = await readFile(templatePath, 'utf8');
+    const template = handlebars.compile(source);
+
+    const resetLink = `${process.env.FRONTEND_DOMAIN}/reset-password?token=${token}`;
+    const html = template({ name: user.username || user.email, resetLink });
+
+    console.log('📨 Preparing to send email to', user.email);
+    await sendEmail({
+      to: user.email,
+      subject: 'Password Reset',
+      html,
+      text: `Reset your password using this link: ${resetLink}`,
+    });
+
+    res.status(200).json({ message: 'Password reset email sent successfully' });
+  } catch (e) {
+    console.error(e);
+    next(createHttpError(500, 'Failed to send the email, please try again later.'));
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      throw createHttpError(401, 'Invalid or expired token');
+    }
+
+    const user = await User.findOne({ _id: payload.sub, email: payload.email });
+    if (!user) {
+      throw createHttpError(404, 'User not found');
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    user.password = hash;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully' });
   } catch (e) {
     next(e);
   }
